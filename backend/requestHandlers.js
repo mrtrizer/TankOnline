@@ -126,6 +126,7 @@ function onTimer()
 {
 	curTime++;
 	//calc.recalc();
+	calc.recalcType("bullet");
 }
 
 setInterval(onTimer, 40);

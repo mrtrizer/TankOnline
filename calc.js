@@ -15,6 +15,17 @@ function addObject(object)
 		constructObject(object);
 }
 
+function removeObject(object)
+{
+	if (typeof(destructObject) == "function")
+		destructObject(object);
+	for (var i in objects)
+	{
+		if (objects[i].id == object.id)
+			objects.splice(i,1);
+	}
+}
+
 function createBullet(object,headAngle)
 {
 	var speedX = 10 * Math.cos(-Math.PI /2 + object.head_angle);
@@ -47,7 +58,7 @@ function procEvent(object, event)
 		getObject(object).head_angle = event.params.head_angle;
 }
 
-	function getObject(id)
+function getObject(id)
 {
 	for (var i in objects)
 	{
@@ -73,6 +84,17 @@ function recalcObject(object)
 	{
 		object.x += object.speed_x;
 		object.y += object.speed_y;
+		if ((object.x > 500) || (object.y > 500) || (object.x < -500) || (object.y < -500))
+			removeObject(object);
+	}
+}
+
+function recalcType(type)
+{
+	for (var i in objects)
+	{
+		if (objects[i].type == type)
+			recalcObject(objects[i]);
 	}
 }
 
@@ -91,5 +113,6 @@ if (typeof exports !== 'undefined')
 	exports.getCurObject = getCurObject;
 	exports.recalcObject = recalcObject;
 	exports.recalc = recalc;
+	exports.recalcType = recalcType;
 	exports.setObjects = setObjects;
 }

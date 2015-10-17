@@ -259,9 +259,9 @@ var loadCount = 0;
 		camera.rotation.x = Math.PI / 4;
 		var lavaTexture = THREE.ImageUtils.loadTexture( 'ground.jpg' );
 		lavaTexture.wrapS = lavaTexture.wrapT = THREE.RepeatWrapping;
-		lavaTexture.repeat.set( 10, 10 );
+		lavaTexture.repeat.set( 5, 5 );
 		var lavaMaterial = new THREE.MeshBasicMaterial( { map: lavaTexture } );
-		var lavaBall = new THREE.Mesh( new THREE.PlaneGeometry( 5000, 5000), lavaMaterial );
+		var lavaBall = new THREE.Mesh( new THREE.PlaneGeometry( 1000, 1000), lavaMaterial );
 		lavaBall.position.z =  - 20;
 		lavaBall.receiveShadow = true;
 		scene.add( lavaBall );    
@@ -411,6 +411,22 @@ var loadCount = 0;
 			var bullet = addBullet(object.x, object.y, 5, 0xff0000, 20);
 			bullet.object = object;
 			objectsMesh[objectsMesh.length] = bullet;
+		}
+	}
+	
+	function destructObject(object)
+	{
+		if (object.type == "bullet")
+		{
+			for (var i in objectsMesh)
+			{
+				if (objectsMesh[i].object.id == object.id)
+				{
+					scene.remove(objectsMesh[i]);
+					objectsMesh.splice(i,1);
+				}
+			}
+			
 		}
 	}
 	
