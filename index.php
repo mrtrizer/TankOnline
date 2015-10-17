@@ -72,21 +72,6 @@
 		return 0;
 	}
 
-	function isInRange(start,end,value)
-	{
-		if ((value > start) && (value < end))
-			return true;
-		return false;
-	}
-
-	function isCollusion(mesh, point, size)
-	{
-		if (isInRange(mesh.position.x - size, mesh.position.x + size, point.x) &&
-				isInRange(mesh.position.y - size, mesh.position.y + size, point.y))
-			return true;
-		return false;
-	}
-
 	function getRand(min, max)
 	{
 	  return Math.floor(Math.random() * (max - min) + min);
@@ -362,12 +347,6 @@ var loadCount = 0;
         renderer.setSize( window.innerWidth, window.innerHeight );
 	}
 
-	function getDist(mesh1,mesh2)
-	{
-		return Math.sqrt(Math.pow(mesh1.position.x - mesh2.position.x,2) + 
-					Math.pow(mesh1.position.y - mesh2.position.y,2));
-	}
-
 	function render()
 	{
 		renderer.render( scene, camera );
@@ -426,7 +405,19 @@ var loadCount = 0;
 					objectsMesh.splice(i,1);
 				}
 			}
-			
+		}
+		if (object.type == "tank")
+		{
+			for (var i in objectsMesh)
+			{
+				if (objectsMesh[i].object.id == object.id)
+				{
+					if (object.id == playerId)
+						gameOver();
+					scene.remove(objectsMesh[i]);
+					objectsMesh.splice(i,1);
+				}
+			}
 		}
 	}
 	
@@ -588,12 +579,18 @@ var loadCount = 0;
 	{
 		var xOffset = 10 * Math.cos(getCurObject().head_angle);
 		var yOffset = 10 * Math.sin(getCurObject().head_angle);
-		shareEvent(genEvent("shoot",{head_angle:getCurObject().head_angle}));
+		shareEvent(genEvent("shoot",{head_angle:getCurObject().head_angle, sender:playerId}));
 	}
 
 	function bodyLoaded()
 	{
 		initApp();
+	}
+	
+	function gameOver()
+	{
+		var window = document.getElementById("finish_window");
+		window.style.visibility = "visible";
 	}
 
 	document.onkeydown=onKeyDown;
@@ -601,12 +598,8 @@ var loadCount = 0;
 </script>
 </head>
 <body onload="bodyLoaded()" onmousemove="onMouseMove(event)" onclick="onClick(event)">
-	<div id="ammo_panel">
-		<div id="ammo1" class="ammo_slot ammo_slot_selected" onclick="selectAmmo(0);"></div>
-		<div id="ammo2" class="ammo_slot" onclick="selectAmmo(1);"></div>
-		<div id="ammo3" class="ammo_slot" onclick="selectAmmo(2);"></div>
-		<div id="ammo4" class="ammo_slot" onclick="selectAmmo(3);"></div>
-		<div id="ammo5" class="ammo_slot" onclick="selectAmmo(4);"></div>
+	<div id="finish_window" class="window">
+		Игра окончена.
 	</div>
 </body>
 </html>
