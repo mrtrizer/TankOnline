@@ -1,0 +1,52 @@
+var http = require('http'),
+    url = require('url'),
+    path = require('path'),
+    fs = require('fs');
+    
+var mimeTypes = {
+    "html": "text/html",
+    "jpeg": "image/jpeg",
+    "jpg": "image/jpeg",
+    "png": "image/png",
+    "js": "text/javascript",
+    "css": "text/css",
+    "mp3": "audio/mpeg mp3"};
+
+function route(handle, pathname, request, response) 
+{
+	console.log("About to route a request for " + pathname);
+	pathname = pathname.replace(/\/+/,"");
+	if (typeof handle[pathname] === 'function') 
+	{
+		console.log("Processing");
+		handle[pathname](request,response);
+	}
+	else 
+	{
+		var fileName = path.join(process.cwd(), pathname);
+		fs.exists(fileName, function(exists) {
+			if(!exists) {
+				console.log("No request handler found: " + pathname);
+				console.log("File not exists: " + fileName);
+				response.writeHead(404, {'Content-Type': 'text/plain'});
+				response.write('404 Not Found\n');
+				response.end();
+				return;
+			}
+			if (!fs.lstatSync(fileName).isFile())
+			{
+				response.writeHead(423, {'Content-Type': 'text/plain'});
+				response.write('423 Locked\n');
+				return;
+			}
+			var pathItems = path.extname(fileName).split(".");
+			var mimeType = mimeTypes[pathItems[pathItems.length - 1]];
+			response.writeHead(200, {'Content-Type': mimeType});
+			var fileStream = fs.createReadStream(fileName);
+			fileStream.pipe(response);
+		}); //path.exists
+
+	}
+}
+
+exports.route = route;
