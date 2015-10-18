@@ -161,7 +161,7 @@ var loadCount = 0;
 	function enterGame(onEntered)
 	{
 		client.sendRequest("enter_game", {time:curTime,id:playerId}, "GET", function (responce){
-			objects = responce["objects"];
+			//objects = responce["objects"];
 			onEntered();
 		});
 	}
@@ -251,40 +251,6 @@ var loadCount = 0;
 		lavaBall.receiveShadow = true;
 		scene.add( lavaBall );    
 		
-		for(var i in objects)
-		{
-			var object = objects[i];
-			var n = objectsMesh.length;
-			objectsMesh[n] = setObject(tank1,object.x,object.y,40,object.angle);
-			objectsMesh[n].object = object;
-			var sprite = makeTextSprite("Player " + object.id,{ fontsize: 60, fontface: "Arial", borderColor: {r:0, g:200, b:0, a:1.0} });
-			sprite.position.z = 20;
-			sprite.position.x = 0;
-			sprite.position.y = 0;
-			objectsMesh[n].add(sprite);  
-		}
-		
-		var material = new THREE.LineBasicMaterial({
-			color: 0x007700
-		});
-
-		var geometry = new THREE.Geometry();
-		geometry.vertices.push(
-			new THREE.Vector3( 0, 100, 0 ),
-			new THREE.Vector3( 0, 1000, 0 )
-		);
-
-		var line = new THREE.Line( geometry, material );
-		
-		getCurMesh().traverse( function ( child ) 
-		{
-			if (child.name.indexOf("head") > -1)
-			{ 
-				child.add( line );
-				child.add(camera);
-			}
-		});
-		
 		sunLight = new THREE.DirectionalLight( 0xffffaa, 1.3 );
 		sunLight.castShadow = true;
 		sunLight.position.set( lightDist, lightDist, 400 );
@@ -310,6 +276,8 @@ var loadCount = 0;
         startGame();
         
         sendEventList();//Start event generation
+        
+        setInterval(correctTimer,50);
 	}
 
 	function startGame()
@@ -385,11 +353,49 @@ var loadCount = 0;
 	
 	function constructObject(object)
 	{
+		var mesh = null;
 		if (object.type == "bullet")
 		{
-			var bullet = addBullet(object.x, object.y, 5, 0xff0000, 20);
-			bullet.object = object;
-			objectsMesh[objectsMesh.length] = bullet;
+			mesh = addBullet(object.x, object.y, 5, 0xff0000, 20);
+		}
+		if (object.type == "tank")
+		{
+			mesh = setObject(tank1,object.x,object.y,40,object.angle);
+			mesh.object = object;
+			var sprite = makeTextSprite("Player " + object.id,{ fontsize: 60, fontface: "Arial", borderColor: {r:0, g:200, b:0, a:1.0} });
+			sprite.position.z = 20;
+			sprite.position.x = 0;
+			sprite.position.y = 0;
+			mesh.add(sprite);  
+			
+			if (object.id == playerId)
+			{
+				var material = new THREE.LineBasicMaterial({
+					color: 0x007700
+				});
+
+				var geometry = new THREE.Geometry();
+				geometry.vertices.push(
+					new THREE.Vector3( 0, 100, 0 ),
+					new THREE.Vector3( 0, 1000, 0 )
+				);
+
+				var line = new THREE.Line( geometry, material );
+				
+				mesh.traverse( function ( child ) 
+				{
+					if (child.name.indexOf("head") > -1)
+					{ 
+						child.add( line );
+						child.add(camera);
+					}
+				});
+			}
+		}
+		if (mesh != null)
+		{
+			mesh.object = object;
+			objectsMesh[objectsMesh.length] = mesh;
 		}
 	}
 	
@@ -438,7 +444,7 @@ var loadCount = 0;
 	function recalcAll()
 	{
 		curTime++;
-		recalc();
+		recalc(curTime);
 		meshRecalc();
 	}
 	
@@ -448,39 +454,99 @@ var loadCount = 0;
     }
 	
 	var events = [];
+	var corrections = [];
+	
+	function correctTimer()
+	{
+		//for (var j in corrections)
+			//for (var i in objects)
+			//{
+				//if (objects[i].id == corrections[j].id)
+					//if (objects[i].id != playerId)
+					//{
+						//if (Math.abs(corrections[j].x - objects[i].x) > 1)
+							//objects[i].x += corrections[j].x_step || 0;
+						//if (Math.abs(corrections[j].y - objects[i].y) > 1)
+							//objects[i].y += corrections[j].y_step || 0;
+						//if (Math.abs(corrections[j].angle - objects[i].angle) > 0.4)
+							//objects[i].angle += corrections[j].angle_step || 0;
+					//}
+			//}
+	}
 	
 	function onEventResponce(data)
 	{
-		console.log("Event responce" + JSON.stringify(data));
+		setTimeout(sendEventList,50);
 		if (data.events.length > 0)
 		{
-			var prevEventTime = data["last_request_time"];
 			for (var i in data.events)
 			{
-				var playerId = data.events[i].player;
+				var objectId = data.events[i].player;
 				var event = data.events[i];
-				var timeD = event.cur_time - prevEventTime;
+				var timeD = data.events[i].event_d;
 				for (var j = 0; j < timeD; j++)
-					recalcObject(getObject(playerId));
-				procEvent(playerId, event);
+					recalcObject(getObject(objectId),curTime);
+				procEvent(objectId, event);
 				prevEventTime = event.cur_time;
 			}
-			recalcObject(getObject(playerId));
+			recalcObject(getObject(playerId),curTime);
 		}
-		for (var i in objects)
+
+		corrections = data.objects;
+
+		for (var j in data.objects)
 		{
-			for (var j in data.objects)
+			var exists = false;
+			for (var i in objects)
 			{
-				if ((objects[i].id == data.objects[j].id) && (objects[i].id == playerId))
+				if (objects[i].id == data.objects[j].id)
 				{
-					objects[i].x = data.objects[j].x;
-					objects[i].y = data.objects[j].y;
-					objects[i].angle = data.objects[j].angle;
+					var diff = data.objects[j].last_update - data.last_request_time;
+					console.log("Time d: " + diff);
+					if ((objects[i].id != playerId) && (diff >= 0))
+					{
+						console.log("Id: " + objects[i].id + " " + playerId);
+						objects[i].x = data.objects[j].x;
+						objects[i].y = data.objects[j].y;
+						objects[i].angle = data.objects[j].angle;
+					}
+					if ((objects[i].id == playerId) && (diff >= 5))
+					{
+						if (Math.abs(data.objects[j].x - objects[i].x) > 5)
+							objects[i].x = data.objects[j].x;
+						if (Math.abs(data.objects[j].y - objects[i].y) > 5)
+							objects[i].y = data.objects[j].y;
+						if (Math.abs(data.objects[j].angle - objects[i].angle) > 1)
+							objects[i].angle = data.objects[j].angle;
+					}
+					exists = true;
+					break;
 				}
+			}
+			if (exists == false)
+			{
+				addObject(data.objects[j]);
+			}
+		}
+		if (objects.length > data.objects.length)
+		{
+			for (var i in objects)
+			{
+				var exists = false;
+				for (var j in data.objects)
+				{
+					if (objects[i].id == data.objects[j].id)
+					{
+
+						exists = true;
+						break;
+					}
+				}
+				if (exists == false)
+					removeObject(objects[i]);
 			}
 		}
 		meshRecalc();
-		setTimeout(sendEventList,100);
 	}
 	
 	function onEventResponceError(data)
@@ -575,11 +641,13 @@ var loadCount = 0;
 		camera.position.y = -Math.cos(angle) * 400;
 	}
 
+	
+
 	function onClick(e)
 	{
 		var xOffset = 10 * Math.cos(getCurObject().head_angle);
 		var yOffset = 10 * Math.sin(getCurObject().head_angle);
-		shareEvent(genEvent("shoot",{head_angle:getCurObject().head_angle, sender:playerId}));
+		shareEvent(genEvent("shoot",{head_angle:getCurObject().head_angle, sender:playerId, bullet_id:getRand(1000,10000000)}));
 	}
 
 	function bodyLoaded()

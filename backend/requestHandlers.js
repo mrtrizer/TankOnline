@@ -116,9 +116,9 @@ function checkVars(vars, list)
 var users = {};
 var curTime = 0;
 var objects = [
-		{id:10, type:"tank", x: -100, y:0, speed_y: 0, rotate_speed: 0, angle:0, head_angle:0, health:100}, 
-		{id:20, type:"tank", x:100, y:0, speed_y: 0, rotate_speed: 0, angle:0, head_angle: 0, health:100},
-		{id:30, type:"tank", x:300, y:0, speed_y: 0, rotate_speed: 0, angle:0, head_angle: 0, health:100}]
+		{id:10, type:"tank", x: -100, y:0, speed_y: 0, rotate_speed: 0, angle:0, head_angle:0, health:100, last_update:0}, 
+		{id:20, type:"tank", x:100, y:0, speed_y: 0, rotate_speed: 0, angle:0, head_angle: 0, health:100, last_update:0},
+		{id:30, type:"tank", x:300, y:0, speed_y: 0, rotate_speed: 0, angle:0, head_angle: 0, health:100, last_update:0}]
 calc.setObjects(objects);
 var events = [];
 
@@ -126,7 +126,7 @@ function onTimer()
 {
 	curTime++;
 	//calc.recalc();
-	calc.recalcType("bullet");
+	calc.recalcType("bullet",curTime);
 }
 
 setInterval(onTimer, 40);
@@ -158,13 +158,14 @@ function onEvent(request,response)
 	var userId = query.id;
 	var inEvents = JSON.parse(query.events);
 	//console.log("Users: " + JSON.stringify(users));
-	//console.log("Events in: " + JSON.stringify(inEvents) + " id: " + userId);
+	for (var i in inEvents)
+		console.log("Event: " + inEvents[i].type + " id: " + userId);
 	for (var i in inEvents)
 	{
 		var event = inEvents[i];
 		event.time = users[userId].timeOffset + event.cur_time; //time = client + offset
 		for (var j = 0; j < event.event_d; j++)
-			calc.recalcObject(calc.getObject(userId));
+			calc.recalcObject(calc.getObject(userId),curTime);
 		calc.procEvent(userId,inEvents[i]);
 		event.in_time = curTime;
 		events[events.length] = event;
@@ -192,10 +193,10 @@ function onEvent(request,response)
 			events.splice(i,1);
 		}
 	}
-	//console.log("Events out: " + JSON.stringify(responceEvents));
-	//console.log("Objects: " + JSON.stringify(objects));
-	data = {events:responceEvents, last_request_time: users[userId].lastRequestTime + users[userId].timeOffset,
-			objects:objects};
+	
+	data = {events:responceEvents, last_request_time: users[userId].lastRequestTime,
+			objects:objects, cur_time:curTime};
+	console.log("Events out: " + JSON.stringify(data));
 	users[userId].lastRequestTime = curTime;
 	writeResponse(response,data);
 }

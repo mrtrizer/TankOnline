@@ -30,6 +30,11 @@ function setObjects(newObjects)
 
 function addObject(object)
 {
+	for (var i in objects)
+	{
+		if (objects[i].id == object.id)
+			return;
+	}
 	objects[objects.length] = object;
 	if (typeof(constructObject) == "function")
 		constructObject(object);
@@ -46,12 +51,18 @@ function removeObject(object)
 	}
 }
 
-function createBullet(object,headAngle,sender)
+function createBullet(object,event)
 {
-	var speedX = 5 * Math.cos(-Math.PI /2 + object.head_angle);
-	var speedY = 5 * -Math.sin(-Math.PI /2 + object.head_angle);
-	lastBulletId += 1;
-	addObject({id:lastBulletId, type:"bullet", sender:sender, x:object.x, y:object.y, speed_x:speedX, speed_y:speedY});
+	var speedX = 10 * Math.cos(-Math.PI /2 + event.params.head_angle);
+	var speedY = 10 * -Math.sin(-Math.PI /2 + event.params.head_angle);
+	addObject({
+		id:event.params.bullet_id, 
+		type:"bullet", 
+		sender:event.params.sender, 
+		x:object.x, 
+		y:object.y, 
+		speed_x:speedX, 
+		speed_y:speedY});
 }
 
 function procEvent(object, event)
@@ -73,7 +84,7 @@ function procEvent(object, event)
 	if (event.type == "rotate_left_stop")
 		getObject(object).rotate_speed = 0;
 	if (event.type == "shoot")
-		createBullet(getObject(object),event.params.head_angle,event.params.sender);
+		createBullet(getObject(object),event);
 	if (event.type == "set_head_angle")
 		getObject(object).head_angle = event.params.head_angle;
 }
@@ -92,7 +103,7 @@ function getCurObject()
 	return getObject(playerId); //Find corresponding object
 }
 
-function recalcObject(object)
+function recalcObject(object, curTime)
 {
 	if (object.type == "tank")
 	{
@@ -113,6 +124,8 @@ function recalcObject(object)
 				break;
 			}
 		}
+		if ((newX > 450) || (newY > 450) || (newX< -450) || (newY < -450))
+			collusion = true;
 		if (collusion == false)
 		{
 			object.x = newX;
@@ -140,22 +153,23 @@ function recalcObject(object)
 		if ((object.x > 500) || (object.y > 500) || (object.x < -500) || (object.y < -500))
 			removeObject(object);
 	}
+	object.last_update = curTime;
 }
 
-function recalcType(type)
+function recalcType(type, curTime)
 {
 	for (var i in objects)
 	{
 		if (objects[i].type == type)
-			recalcObject(objects[i]);
+			recalcObject(objects[i], curTime);
 	}
 }
 
-function recalc()
+function recalc(curTime)
 {
 	for (var i in objects)
 	{
-		recalcObject(objects[i]);
+		recalcObject(objects[i], curTime);
 	}
 }
 
