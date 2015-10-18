@@ -537,7 +537,7 @@ var loadCount = 0;
 						objects[i].y = data.objects[j].y;
 						objects[i].angle = data.objects[j].angle;
 					}
-					if ((objects[i].id == playerId) && (diff >= 5))
+					if ((objects[i].id == playerId) && (diff >= 30))
 					{
 						objects[i].health = data.objects[j].health;
 						if ((Math.abs(data.objects[j].x - objects[i].x) > 1) ||
