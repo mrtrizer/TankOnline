@@ -344,10 +344,14 @@ var loadCount = 0;
 			mesh.position.y = object.y;
 			if (object.type == "tank")
 			{
-				mesh.healthSprite.context.clearRect(0, 0, 128, 128);
-				mesh.healthSprite.context.fillStyle = "rgba(0,255,0,1)";
-				mesh.healthSprite.context.fillRect(0, 0, 127 * mesh.object.health / 100, 32);
-				mesh.healthSprite.sprite.material.map.needsUpdate = true;
+				if (mesh.oldHealth != mesh.object.health)
+				{
+					mesh.healthSprite.context.clearRect(0, 0, 128, 128);
+					mesh.healthSprite.context.fillStyle = "rgba(0,255,0,1)";
+					mesh.healthSprite.context.fillRect(0, 0, 127 * mesh.object.health / 100, 32);
+					mesh.healthSprite.sprite.material.map.needsUpdate = true;
+					mesh.oldHealth = mesh.object.health;
+				}
 				mesh.position.z = 20;
 				mesh.rotation.z = object.angle;
 				mesh.traverse( function ( child ) 
@@ -379,6 +383,7 @@ var loadCount = 0;
 		if (object.type == "tank")
 		{
 			mesh = setObject(tank1,object.x,object.y,40,object.angle);
+			mesh.oldHealth = 0;
 			mesh.object = object;
 			var sprite = makeTextSprite("Player " + object.id,{ fontsize: 60, fontface: "Arial", borderColor: {r:0, g:200, b:0, a:1.0} });
 			sprite.position.z = 20;
