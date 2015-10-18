@@ -8,7 +8,7 @@ function startHTTP(route, handle, config)
 	function onRequest(request, response) 
 	{
 		var pathname = url.parse(request.url).pathname;
-		console.log("HTTP Request for " + pathname + " received.");
+		//console.log("HTTP Request for " + pathname + " received.");
 		route(handle, pathname, request, response);
 	}
 	http.createServer(onRequest).listen(config.server_http_port);
@@ -33,7 +33,7 @@ function startHTTPS(route, handle, config)
 	function onRequest(request, response) 
 	{
 		var pathname = url.parse(request.url).pathname;
-		console.log("HTTPS Request for " + pathname + " received.");
+		//console.log("HTTPS Request for " + pathname + " received.");
 		route(handle, pathname, request, response);
 	}
 	https.createServer(options,onRequest).listen(config.server_https_port);

@@ -14,11 +14,11 @@ var mimeTypes = {
 
 function route(handle, pathname, request, response) 
 {
-	console.log("About to route a request for " + pathname);
+	//console.log("About to route a request for " + pathname);
 	pathname = pathname.replace(/\/+/,"");
 	if (typeof handle[pathname] === 'function') 
 	{
-		console.log("Processing");
+		//console.log("Processing");
 		handle[pathname](request,response);
 	}
 	else 

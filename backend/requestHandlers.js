@@ -56,7 +56,7 @@ function writeResponse(response,data,error,errorMsg,err)
 	data.error_code = error;
 	if ((error != 0) && errorMsg)
 		data.error_msg = errorMsg;
-	console.log('Response. Error code: '+ error + " Message: " + (errorMsg || "OK" ));
+	//console.log('Response. Error code: '+ error + " Message: " + (errorMsg || "OK" ));
 	if (err != undefined)
 		console.log(err);
 	try 
@@ -115,18 +115,15 @@ function checkVars(vars, list)
 
 var users = {};
 var curTime = 0;
-var objects = [
-		{id:10, type:"tank", x: -100, y:0, speed_y: 0, rotate_speed: 0, angle:0, head_angle:0, health:100, last_update:0}, 
-		{id:20, type:"tank", x:100, y:0, speed_y: 0, rotate_speed: 0, angle:0, head_angle: 0, health:100, last_update:0},
-		{id:30, type:"tank", x:300, y:0, speed_y: 0, rotate_speed: 0, angle:0, head_angle: 0, health:100, last_update:0}]
+var objects = [];
 calc.setObjects(objects);
 var events = [];
 var lastEventId = 0;
+var lastUserId = 0;
 
 function onTimer()
 {
 	curTime++;
-	//calc.recalc();
 	calc.recalcType("bullet",curTime);
 }
 
@@ -136,9 +133,12 @@ function enterGame(request,response)
 {
 	var query = url.parse(request.url,true).query;
 	var time = query.time;
-	var id = query.id;
-	users[id] = {timeOffset: curTime - time, lastRequestEventId: 0}; //offset = server - client
+	lastUserId += 1;
+	var id = lastUserId;
+	calc.addObject({id:id, type:"tank", x: getRandomInt(-400,400), y:getRandomInt(-400,400), speed_y: 0, rotate_speed: 0, angle:0, head_angle:0, health:100, last_update:0});
+	users[id] = {id:id, timeOffset: curTime - time, lastRequestEventId: 0};
 	writeResponse(response,{id:id,objects:objects});
+	console.log("Player enter game id:" + id);
 }
 
 function syncClock(request,responce)
@@ -167,6 +167,7 @@ function onEvent(request,response)
 		event.in_time = curTime;
 		lastEventId += 1;
 		event.id = lastEventId;
+		console.log("[EVENT:" + curTime + "] player: " + event.player + " id: " + event.id + " type: " + event.type);
 		events[events.length] = event;
 	}
 	//console.log("Events cur: " + JSON.stringify(events));
@@ -196,7 +197,6 @@ function onEvent(request,response)
 	
 	data = {events:responceEvents, last_request_time: users[userId].lastRequestTime,
 			objects:objects, cur_time:curTime};
-	//console.log("Events out: " + JSON.stringify(data));
 	//console.log("Events out: " + JSON.stringify(data));
 	users[userId].lastRequestTime = curTime;
 	if (responceEvents.length > 0)

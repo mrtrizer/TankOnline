@@ -184,4 +184,5 @@ if (typeof exports !== 'undefined')
 	exports.recalc = recalc;
 	exports.recalcType = recalcType;
 	exports.setObjects = setObjects;
+	exports.addObject = addObject;
 }

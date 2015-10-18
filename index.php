@@ -42,7 +42,7 @@
 	var objects = [];
 	var objectsMesh = [];
     var curTime = 0;
-    var playerId = <?php echo $_GET["playerId"];?>;
+    var playerId = 0;
 
 	function getWidth() {
 		if (self.innerWidth) {
@@ -161,7 +161,7 @@ var loadCount = 0;
 	function enterGame(onEntered)
 	{
 		client.sendRequest("enter_game", {time:curTime,id:playerId}, "GET", function (responce){
-			//objects = responce["objects"];
+			playerId = responce.id;
 			onEntered();
 		});
 	}
@@ -530,12 +530,15 @@ var loadCount = 0;
 					}
 					if ((objects[i].id == playerId) && (diff >= 5))
 					{
-						if (Math.abs(data.objects[j].x - objects[i].x) > 5)
+						objects[i].health = data.objects[j].health;
+						if ((Math.abs(data.objects[j].x - objects[i].x) > 2) ||
+							(Math.abs(data.objects[j].y - objects[i].y) > 2) ||
+							(Math.abs(data.objects[j].angle - objects[i].angle) > 0.5))
+						{
 							objects[i].x = data.objects[j].x;
-						if (Math.abs(data.objects[j].y - objects[i].y) > 5)
-							objects[i].y = data.objects[j].y;
-						if (Math.abs(data.objects[j].angle - objects[i].angle) > 1)
+							objects[i].y = data.objects[j].y; 
 							objects[i].angle = data.objects[j].angle;
+						}
 					}
 					exists = true;
 					break;
