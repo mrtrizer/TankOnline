@@ -14,7 +14,7 @@ Client = function (host,userId,authKey,apiId,debug)
 		}
 	  return str.join("&");
 	}
-	this.sendRequest = function (funcName,args,method,parseFunction,procError)
+	this.sendRequest = function (funcName,args,method,parseFunction,procError,httpError)
 	{
 		var xmlhttp;
 		if (window.XMLHttpRequest)
@@ -40,7 +40,7 @@ Client = function (host,userId,authKey,apiId,debug)
 				var data = eval("("+xmlhttp.responseText+")");
 				if (data.error_code != 0)
 				{
-					if (typeof procError === 'function')
+					if (typeof(procError) === 'function')
 						procError(data.error_code);
 				}
 				else
@@ -49,6 +49,11 @@ Client = function (host,userId,authKey,apiId,debug)
 						parseFunction(data);
 				}
 			}
+		}
+		xmlhttp.onerror = function()
+		{
+			if (typeof(procError) === 'function')
+				httpError();
 		}
 		if (method == "POST")
 		{

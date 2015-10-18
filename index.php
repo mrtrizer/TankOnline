@@ -236,6 +236,20 @@ var loadCount = 0;
         return sprite;  
     }
 
+	function makeSprite()
+    {
+		var canvas = document.createElement('canvas');
+		var context = canvas.getContext('2d');
+		canvas.width  = 128;
+		canvas.height = 128;
+        var texture = new THREE.Texture(canvas) 
+        texture.needsUpdate = true;
+        var spriteMaterial = new THREE.SpriteMaterial( { map: texture, useScreenCoordinates: false } );
+        var sprite = new THREE.Sprite( spriteMaterial );
+        sprite.scale.set(50, 25, 75);
+        return {sprite:sprite, context: context};  
+    }
+
 	function initMap()
 	{
 		camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 2000 );
@@ -330,6 +344,10 @@ var loadCount = 0;
 			mesh.position.y = object.y;
 			if (object.type == "tank")
 			{
+				mesh.healthSprite.context.clearRect(0, 0, 128, 128);
+				mesh.healthSprite.context.fillStyle = "rgba(0,255,0,1)";
+				mesh.healthSprite.context.fillRect(0, 0, 127 * mesh.object.health / 100, 32);
+				mesh.healthSprite.sprite.material.map.needsUpdate = true;
 				mesh.position.z = 20;
 				mesh.rotation.z = object.angle;
 				mesh.traverse( function ( child ) 
@@ -367,6 +385,11 @@ var loadCount = 0;
 			sprite.position.x = 0;
 			sprite.position.y = 0;
 			mesh.add(sprite);  
+			
+			healthSprite = makeSprite();
+			healthSprite.sprite.position.z = 40;
+			mesh.add(healthSprite.sprite);
+			mesh.healthSprite = healthSprite;
 			
 			if (object.id == playerId)
 			{
@@ -441,6 +464,8 @@ var loadCount = 0;
 		return getMesh(playerId);
 	}
 	
+	var n = 0;
+	
 	function recalcAll()
 	{
 		curTime++;
@@ -456,7 +481,6 @@ var loadCount = 0;
 	var events = [];
 	var corrections = [];
 	var oldHeadAngle = 0;
-	var serverResponcWaitFlag = false;
 	
 	function headMoveTimer()
 	{
@@ -467,18 +491,8 @@ var loadCount = 0;
 		}
 	}
 	
-	function serverSleepTimer()
-	{
-		if (serverResponcWaitFlag)
-		{
-			serverResponcWaitFlag = false;
-			sendEventList();
-		}
-	}
-	
 	function onEventResponce(data)
 	{
-		serverResponcWaitFlag = false;
 		setTimeout(sendEventList,50);
 		if (data.events.length > 0)
 		{
@@ -548,10 +562,9 @@ var loadCount = 0;
 		meshRecalc();
 	}
 	
-	function onEventResponceError(data)
+	function onEventResponceError()
 	{
 		setTimeout(sendEventList,500);
-		serverResponcWaitFlag = false;
 	}
 	
 	function sendEventList()
@@ -559,10 +572,9 @@ var loadCount = 0;
 		var data = {id:playerId, events:events};
 		if (events.length > 0)
 			console.log("Events out: " + JSON.stringify(events));
-		client.sendRequest("event", data, "GET", onEventResponce, onEventResponceError);
+		client.sendRequest("event", data, "GET", onEventResponce, null, onEventResponceError);
 		events = [];
 		serverResponcWaitFlag = true;
-		//setTimeout(serverSleepTimer,2000);
 	}
 	
 	var prevEventTime = 0;

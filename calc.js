@@ -145,7 +145,9 @@ function recalcObject(object, curTime)
 			var dist = getDist(objects[i], object);
 			if (dist < 20)
 			{
-				removeObject(objects[i]);
+				objects[i].health -= 10;
+				if (objects[i].health < 0)
+					removeObject(objects[i]);
 				removeObject(object);
 				break;
 			}
