@@ -127,7 +127,7 @@ function onTimer()
 	calc.recalcType("bullet",curTime);
 }
 
-setInterval(onTimer, 40);
+setInterval(onTimer, 41);
 
 function enterGame(request,response)
 {
@@ -161,13 +161,16 @@ function onEvent(request,response)
 	{
 		var event = inEvents[i];
 		event.time = users[userId].timeOffset + event.cur_time; //time = client + offset
-		for (var j = 0; j < event.event_d; j++)
-			calc.recalcObject(calc.getObject(userId),curTime);
+		var object = calc.getObject(userId);
+		for (var j = 0; j < (event.event_d); j++)
+			calc.recalcObject(object,curTime);
+		if (object.type == "tank")
+			console.log("[NEW_POS:" + curTime + "]" + "id: " + object.id + " x: " + object.x.toFixed(2) + " y: " + object.y.toFixed(2) + " a: " + object.angle.toFixed(2));
 		calc.procEvent(userId,inEvents[i]);
 		event.in_time = curTime;
 		lastEventId += 1;
 		event.id = lastEventId;
-		console.log("[EVENT:" + curTime + "] player: " + event.player + " id: " + event.id + " type: " + event.type);
+		console.log("[EVENT:" + curTime + "/" + event.cur_time + "(" + (curTime - event.cur_time) +  ")] player: " + event.player + " id: " + event.id + " type: " + event.type);
 		events[events.length] = event;
 	}
 	//console.log("Events cur: " + JSON.stringify(events));

@@ -344,11 +344,20 @@ var loadCount = 0;
 			mesh.position.y = object.y;
 			if (object.type == "tank")
 			{
-				if (mesh.oldHealth != mesh.object.health)
+				//if (mesh.oldHealth != mesh.object.health)
 				{
 					mesh.healthSprite.context.clearRect(0, 0, 128, 128);
+					mesh.healthSprite.context.fillStyle = "rgba(0,55,0,1)";
+					mesh.healthSprite.context.fillRect(0, 0, 127, 32);
 					mesh.healthSprite.context.fillStyle = "rgba(0,255,0,1)";
 					mesh.healthSprite.context.fillRect(0, 0, 127 * mesh.object.health / 100, 32);
+					mesh.healthSprite.context.fillStyle = "rgba(0,0,0,1)";
+					mesh.healthSprite.context.fillRect(0, 30, 100, 65);
+					mesh.healthSprite.context.font = "Bold 20px Arial";
+					mesh.healthSprite.context.fillStyle = "rgba(0,255,0,1)";
+					mesh.healthSprite.context.fillText("x: " + mesh.object.x.toFixed(2), 0, 50);
+					mesh.healthSprite.context.fillText("y: " + mesh.object.y.toFixed(2), 0, 70);
+					mesh.healthSprite.context.fillText("a: " + mesh.object.angle.toFixed(2), 0, 90);
 					mesh.healthSprite.sprite.material.map.needsUpdate = true;
 					mesh.oldHealth = mesh.object.health;
 				}
@@ -531,8 +540,8 @@ var loadCount = 0;
 					if ((objects[i].id == playerId) && (diff >= 5))
 					{
 						objects[i].health = data.objects[j].health;
-						if ((Math.abs(data.objects[j].x - objects[i].x) > 2) ||
-							(Math.abs(data.objects[j].y - objects[i].y) > 2) ||
+						if ((Math.abs(data.objects[j].x - objects[i].x) > 1) ||
+							(Math.abs(data.objects[j].y - objects[i].y) > 1) ||
 							(Math.abs(data.objects[j].angle - objects[i].angle) > 0.5))
 						{
 							objects[i].x = data.objects[j].x;
@@ -660,8 +669,8 @@ var loadCount = 0;
 		if (angle > 0)
 			angle = 0;
 		camera.rotation.x = angle + Math.PI / 2;
-		camera.position.z = -Math.sin(angle) * 400;
-		camera.position.y = -Math.cos(angle) * 400;
+		camera.position.z = -Math.sin(angle) * 300;
+		camera.position.y = -Math.cos(angle) * 300;
 	}
 
 	
