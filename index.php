@@ -174,7 +174,7 @@ var loadCount = 0;
 	function initApp() 
     {
 		host = Network.detectHost();
-		client = new Client(host + "coldcats/",playerId,0,0);
+		client = new Client(host + "coldcats/",playerId,0,0,false);
 		scene = new THREE.Scene();
 		var manager = new THREE.LoadingManager();
 		manager.onProgress = function ( item, loaded, total ) 
@@ -277,7 +277,7 @@ var loadCount = 0;
         
         sendEventList();//Start event generation
         
-        setInterval(correctTimer,50);
+        setInterval(headMoveTimer,1000);
 	}
 
 	function startGame()
@@ -455,27 +455,29 @@ var loadCount = 0;
 	
 	var events = [];
 	var corrections = [];
+	var oldHeadAngle = 0;
 	
-	function correctTimer()
+	function headMoveTimer()
 	{
-		//for (var j in corrections)
-			//for (var i in objects)
-			//{
-				//if (objects[i].id == corrections[j].id)
-					//if (objects[i].id != playerId)
-					//{
-						//if (Math.abs(corrections[j].x - objects[i].x) > 1)
-							//objects[i].x += corrections[j].x_step || 0;
-						//if (Math.abs(corrections[j].y - objects[i].y) > 1)
-							//objects[i].y += corrections[j].y_step || 0;
-						//if (Math.abs(corrections[j].angle - objects[i].angle) > 0.4)
-							//objects[i].angle += corrections[j].angle_step || 0;
-					//}
-			//}
+		if (getCurObject().head_angle != oldHeadAngle)
+		{
+			shareEvent(genEvent("set_head_angle",{head_angle:getCurObject().head_angle}));
+			oldHeadAngle = getCurObject().head_angle;
+		}
+	}
+	
+	function sleepServerTimer()
+	{
+		if (serverResponcWaitFlag)
+		{
+			serverResponcWaitFlag = false;
+			sendEventList();
+		}
 	}
 	
 	function onEventResponce(data)
 	{
+		serverResponcWaitFlag = false;
 		setTimeout(sendEventList,50);
 		if (data.events.length > 0)
 		{
@@ -487,12 +489,10 @@ var loadCount = 0;
 				for (var j = 0; j < timeD; j++)
 					recalcObject(getObject(objectId),curTime);
 				procEvent(objectId, event);
-				prevEventTime = event.cur_time;
+				console.log("Event in [ id:" + event.player + " type:" + event.type + " time: " + event.cur_time + " ]");
 			}
 			recalcObject(getObject(playerId),curTime);
 		}
-
-		corrections = data.objects;
 
 		for (var j in data.objects)
 		{
@@ -502,10 +502,8 @@ var loadCount = 0;
 				if (objects[i].id == data.objects[j].id)
 				{
 					var diff = data.objects[j].last_update - data.last_request_time;
-					console.log("Time d: " + diff);
 					if ((objects[i].id != playerId) && (diff >= 0))
 					{
-						console.log("Id: " + objects[i].id + " " + playerId);
 						objects[i].x = data.objects[j].x;
 						objects[i].y = data.objects[j].y;
 						objects[i].angle = data.objects[j].angle;
@@ -552,13 +550,18 @@ var loadCount = 0;
 	function onEventResponceError(data)
 	{
 		setTimeout(sendEventList,500);
+		serverResponcWaitFlag = false;
 	}
 	
 	function sendEventList()
 	{
 		var data = {id:playerId, events:events};
+		if (events.length > 0)
+			console.log("Events out: " + JSON.stringify(events));
 		client.sendRequest("event", data, "GET", onEventResponce, onEventResponceError);
 		events = [];
+		serverResponcWaitFlag = true;
+		setTimeout(serverSleepTimer,1000);
 	}
 	
 	var prevEventTime = 0;
@@ -631,8 +634,7 @@ var loadCount = 0;
 	{
 		var x = e.pageX - getWidth() / 2;
 		var y = -e.pageY + getHeight() / 2;
-		var headAngle = x / 100;
-		shareEvent(genEvent("set_head_angle",{head_angle:headAngle}));
+		getCurObject().head_angle = x / 100;
 		var angle = y / 200;
 		if (angle > 0)
 			angle = 0;

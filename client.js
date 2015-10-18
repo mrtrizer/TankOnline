@@ -1,5 +1,6 @@
-Client = function (host,userId,authKey,apiId)
+Client = function (host,userId,authKey,apiId,debug)
 {
+	this.debug = debug || true;
 	this.host = host;
 	this.userId = userId;
 	this.authKey = authKey;
@@ -27,13 +28,15 @@ Client = function (host,userId,authKey,apiId)
 		var address = this.host + "/" + funcName;
 		if (method == "GET")
 			address += "?" + params;
-		console.log("Request: " + address);
+		if (debug)
+			console.log("Request: " + address);
 		xmlhttp.open(method, address, true);
 		xmlhttp.onreadystatechange = function()
 		{
 			if (xmlhttp.readyState == 4 && xmlhttp.status == 200)
 			{
-				console.log("Response: " + xmlhttp.responseText);
+				if (debug)
+					console.log("Response: " + xmlhttp.responseText);
 				var data = eval("("+xmlhttp.responseText+")");
 				if (data.error_code != 0)
 				{

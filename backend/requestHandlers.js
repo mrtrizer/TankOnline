@@ -121,6 +121,7 @@ var objects = [
 		{id:30, type:"tank", x:300, y:0, speed_y: 0, rotate_speed: 0, angle:0, head_angle: 0, health:100, last_update:0}]
 calc.setObjects(objects);
 var events = [];
+var lastEventId = 0;
 
 function onTimer()
 {
@@ -136,8 +137,7 @@ function enterGame(request,response)
 	var query = url.parse(request.url,true).query;
 	var time = query.time;
 	var id = query.id;
-	users[id] = {timeOffset: curTime - time}; //offset = server - client
-	console.log("Enter game id:" + id + " time:" + users[id].timeOffset);
+	users[id] = {timeOffset: curTime - time, lastRequestEventId: 0}; //offset = server - client
 	writeResponse(response,{id:id,objects:objects});
 }
 
@@ -157,9 +157,6 @@ function onEvent(request,response)
 	var query = url.parse(request.url,true).query;
 	var userId = query.id;
 	var inEvents = JSON.parse(query.events);
-	//console.log("Users: " + JSON.stringify(users));
-	for (var i in inEvents)
-		console.log("Event: " + inEvents[i].type + " id: " + userId);
 	for (var i in inEvents)
 	{
 		var event = inEvents[i];
@@ -168,6 +165,8 @@ function onEvent(request,response)
 			calc.recalcObject(calc.getObject(userId),curTime);
 		calc.procEvent(userId,inEvents[i]);
 		event.in_time = curTime;
+		lastEventId += 1;
+		event.id = lastEventId;
 		events[events.length] = event;
 	}
 	//console.log("Events cur: " + JSON.stringify(events));
@@ -182,7 +181,8 @@ function onEvent(request,response)
 	for (var i in events)
 	{
 		var event = events[i];
-		if ((event.in_time > users[userId].lastRequestTime) && (event.player != userId))
+		//console.log("Event id: " + event.id + " last id: " + users[userId].lastRequestEventId);
+		if ((event.id > users[userId].lastRequestEventId) && (event.player != userId))
 		{
 			var eventClone = JSON.parse(JSON.stringify(event));
 			eventClone.time = eventClone.time - users[userId].timeOffset;
@@ -196,8 +196,11 @@ function onEvent(request,response)
 	
 	data = {events:responceEvents, last_request_time: users[userId].lastRequestTime,
 			objects:objects, cur_time:curTime};
-	console.log("Events out: " + JSON.stringify(data));
+	//console.log("Events out: " + JSON.stringify(data));
+	//console.log("Events out: " + JSON.stringify(data));
 	users[userId].lastRequestTime = curTime;
+	if (responceEvents.length > 0)
+		users[userId].lastRequestEventId = responceEvents[responceEvents.length - 1].id;
 	writeResponse(response,data);
 }
 
