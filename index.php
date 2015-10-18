@@ -510,6 +510,7 @@ var loadCount = 0;
 		setTimeout(sendEventList,50);
 		if (data.events.length > 0)
 		{
+			console.log("Objects: " + JSON.stringify(objects));
 			for (var i in data.events)
 			{
 				var objectId = data.events[i].player;
@@ -518,9 +519,8 @@ var loadCount = 0;
 				for (var j = 0; j < timeD; j++)
 					recalcObject(getObject(objectId),curTime);
 				procEvent(objectId, event);
-				console.log("Event in [ id:" + event.player + " type:" + event.type + " time: " + event.cur_time + " ]");
+				console.log("Event in [ id:" + event.player + " type:" + event.type + " time: " + event.cur_time + " ]");	
 			}
-			recalcObject(getObject(playerId),curTime);
 		}
 
 		for (var j in data.objects)
@@ -586,7 +586,7 @@ var loadCount = 0;
 	
 	function sendEventList()
 	{
-		var data = {id:playerId, events:events};
+		var data = {id:playerId, events:events, test:getCurObject()};
 		if (events.length > 0)
 			console.log("Events out: " + JSON.stringify(events));
 		client.sendRequest("event", data, "GET", onEventResponce, null, onEventResponceError);
