@@ -456,6 +456,7 @@ var loadCount = 0;
 	var events = [];
 	var corrections = [];
 	var oldHeadAngle = 0;
+	var serverResponcWaitFlag = false;
 	
 	function headMoveTimer()
 	{
@@ -466,7 +467,7 @@ var loadCount = 0;
 		}
 	}
 	
-	function sleepServerTimer()
+	function serverSleepTimer()
 	{
 		if (serverResponcWaitFlag)
 		{
@@ -561,7 +562,7 @@ var loadCount = 0;
 		client.sendRequest("event", data, "GET", onEventResponce, onEventResponceError);
 		events = [];
 		serverResponcWaitFlag = true;
-		setTimeout(serverSleepTimer,1000);
+		//setTimeout(serverSleepTimer,2000);
 	}
 	
 	var prevEventTime = 0;
