@@ -640,21 +640,13 @@ var responceFlag = false;
 		if (e.keyCode == lastKey)
 			return;
 		if (e.keyCode == 65)
-		{
 			shareEvent(genEvent("rotate_right_start"));
-		}
 		if (e.keyCode == 68)
-		{
 			shareEvent(genEvent("rotate_left_start"));
-		}
 		if (e.keyCode == 87)
-		{
 			shareEvent(genEvent("move_fwd_start"));
-		}
 		if (e.keyCode == 83)
-		{
 			shareEvent(genEvent("move_back_start"));
-		}
 		lastKey = e.keyCode;
 	}
 
@@ -662,21 +654,13 @@ var responceFlag = false;
 	{
 		lastKey = 0;
 		if (e.keyCode == 65)
-		{
 			shareEvent(genEvent("rotate_right_stop"));
-		}
 		if (e.keyCode == 68)
-		{
 			shareEvent(genEvent("rotate_left_stop"));
-		}
 		if (e.keyCode == 87)
-		{
 			shareEvent(genEvent("move_fwd_stop"));
-		}
 		if (e.keyCode == 83)
-		{
 			shareEvent(genEvent("move_back_stop"));
-		}
 	}
 
 	function onMouseMove(e)

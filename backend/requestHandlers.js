@@ -167,9 +167,6 @@ function onEvent(request,response)
 		if (object.type == "tank")
 		{
 			console.log("[NEW_POS:" + curTime + "]" + "id: " + object.id + " x: " + object.x.toFixed(2) + " y: " + object.y.toFixed(2) + " a: " + object.angle.toFixed(2));
-			var test = JSON.parse(query.test);
-			if (object.id == userId)
-				console.log("[TEST:" + curTime + "]" + "id: " + test.id + " x: " + test.x.toFixed(2) + " y: " + test.y.toFixed(2) + " a: " + test.angle.toFixed(2));
 		}
 		calc.procEvent(userId,inEvents[i]);
 		event.in_time = curTime;
