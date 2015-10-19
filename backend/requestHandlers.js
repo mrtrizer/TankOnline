@@ -135,7 +135,18 @@ function enterGame(request,response)
 	var time = query.time;
 	lastUserId += 1;
 	var id = lastUserId;
-	calc.addObject({id:id, type:"tank", x: getRandomInt(-400,400), y:getRandomInt(-400,400), speed_y: 0, rotate_speed: 0, angle:0, head_angle:0, health:100, last_update:0});
+	calc.addObject({
+		id:id, 
+		type:"tank", 
+		x: getRandomInt(-400,400), 
+		y:getRandomInt(-400,400), 
+		speed_y: 0, 
+		rotate_speed: 0, 
+		angle:0, 
+		head_angle:0, 
+		health:100, 
+		last_update:0,
+		owner: id});
 	users[id] = {id:id, timeOffset: curTime - time, lastRequestEventId: 0};
 	writeResponse(response,{id:id,objects:objects});
 	console.log("Player enter game id:" + id);
@@ -156,6 +167,15 @@ function onEvent(request,response)
 	var data = {};
 	var query = url.parse(request.url,true).query;
 	var userId = query.id;
+	var entered = false;
+	for (var i in users)
+		if (users[i].id == userId)
+			entered = true;
+	if (!entered)
+	{
+		writeResponse(response,{},40,'User ' + userId + '  has not entered the game: '); 
+		return;
+	}
 	var inEvents = JSON.parse(query.events);
 	var object = calc.getObject(userId);
 	for (var i in inEvents)
@@ -172,7 +192,7 @@ function onEvent(request,response)
 		event.in_time = curTime;
 		lastEventId += 1;
 		event.id = lastEventId;
-		console.log("[EVENT:" + curTime + "/" + event.cur_time + "(" + (curTime - event.cur_time) +  ")] player: " + event.player + " id: " + event.id + " type: " + event.type);
+		console.log("[EVENT:" + curTime + "/" + event.cur_time + "(" + (curTime - event.cur_time) +  ")] object: " + event.object + " id: " + event.id + " type: " + event.type);
 		events[events.length] = event;
 	}
 	//console.log("Events cur: " + JSON.stringify(events));
@@ -188,7 +208,7 @@ function onEvent(request,response)
 	{
 		var event = events[i];
 		//console.log("Event id: " + event.id + " last id: " + users[userId].lastRequestEventId);
-		if ((event.id > users[userId].lastRequestEventId) && (event.player != userId))
+		if ((event.id > users[userId].lastRequestEventId) && (event.object != userId))
 		{
 			var eventClone = JSON.parse(JSON.stringify(event));
 			eventClone.time = eventClone.time - users[userId].timeOffset;

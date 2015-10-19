@@ -335,3 +335,8 @@ MathTools.MD5 =  function (string) {
  
     return temp.toLowerCase();
 }
+
+if (typeof exports !== 'undefined')
+{
+	exports.MathTools = MathTools;
+}

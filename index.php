@@ -86,18 +86,20 @@ var manager = 0;
 var loadCount = 0;
 var connectionTimer = setInterval(connectionTest,1000);
 var responceFlag = false;
+var connectionProblems = false;
 
 	function connectionTest()
 	{
 		if (responceFlag == true)
 		{
 			document.getElementById("connection_status").className = "connected";
-			document.getElementById("connection_status").innerHTML = "CONNECTED";
+			document.getElementById("connection_status").innerHTML = "CONNECTED (" + sendDelay + ")";
 		}
 		else
 		{
 			document.getElementById("connection_status").className = "disconnected";
 			document.getElementById("connection_status").innerHTML = "DISCONNECTED";
+			connectionProblems = true;
 			sendEventList();
 		}
 		responceFlag = false;
@@ -331,12 +333,7 @@ var responceFlag = false;
 		}
 		return result;
 	}
-
-	function sign(a)
-	{
-		return a?a<0?-1:1:0;
-	}
-
+	
 	function onWindowResize() {
 		camera.left = window.innerWidth / - 2;
 		camera.right = window.innerWidth / 2;
@@ -513,18 +510,12 @@ var responceFlag = false;
 	var events = [];
 	var corrections = [];
 	var oldHeadAngle = 0;
-	
-	function headMoveTimer()
-	{
-		if (getCurObject().head_angle != oldHeadAngle)
-		{
-			shareEvent(genEvent("set_head_angle",{head_angle:getCurObject().head_angle}));
-			oldHeadAngle = getCurObject().head_angle;
-		}
-	}
+	var sendTime = 0;
+	var sendDelay = 0;
 	
 	function onEventResponce(data)
 	{
+		sendDelay = curTime - sendTime;
 		responceFlag = true;
 		setTimeout(sendEventList,50);
 		if (data.events.length > 0)
@@ -532,13 +523,15 @@ var responceFlag = false;
 			console.log("Objects: " + JSON.stringify(objects));
 			for (var i in data.events)
 			{
-				var objectId = data.events[i].player;
+				var objectId = data.events[i].object;
 				var event = data.events[i];
+				if (getObject(event.object).owner == playerId)
+					continue;
 				var timeD = data.events[i].event_d;
 				for (var j = 0; j < timeD; j++)
 					recalcObject(getObject(objectId),curTime);
 				procEvent(objectId, event);
-				console.log("Event in [ id:" + event.player + " type:" + event.type + " time: " + event.cur_time + " ]");	
+				console.log("Event in [ id:" + event.object + " type:" + event.type + " time: " + event.cur_time + " ]");	
 			}
 		}
 
@@ -549,6 +542,8 @@ var responceFlag = false;
 			{
 				if (objects[i].id == data.objects[j].id)
 				{
+					if (objects[i].type == "tank")
+						objects[i].health = data.objects[j].health;
 					var diff = data.objects[j].last_update - data.last_request_time;
 					if ((objects[i].id != playerId) && (diff >= 0))
 					{
@@ -556,17 +551,11 @@ var responceFlag = false;
 						objects[i].y = data.objects[j].y;
 						objects[i].angle = data.objects[j].angle;
 					}
-					if ((objects[i].id == playerId) && (diff >= 30))
+					if ((objects[i].id == playerId) && ((diff >= 30) || connectionProblems))
 					{
-						objects[i].health = data.objects[j].health;
-						if ((Math.abs(data.objects[j].x - objects[i].x) > 1) ||
-							(Math.abs(data.objects[j].y - objects[i].y) > 1) ||
-							(Math.abs(data.objects[j].angle - objects[i].angle) > 0.5))
-						{
-							objects[i].x = data.objects[j].x;
-							objects[i].y = data.objects[j].y; 
-							objects[i].angle = data.objects[j].angle;
-						}
+						objects[i].x = data.objects[j].x;
+						objects[i].y = data.objects[j].y; 
+						objects[i].angle = data.objects[j].angle;
 					}
 					exists = true;
 					break;
@@ -586,7 +575,6 @@ var responceFlag = false;
 				{
 					if (objects[i].id == data.objects[j].id)
 					{
-
 						exists = true;
 						break;
 					}
@@ -596,30 +584,24 @@ var responceFlag = false;
 			}
 		}
 		meshRecalc();
+		connectionProblems = false;
 	}
 	
 	function onEventResponceError()
 	{
 		setTimeout(sendEventList,500);
+		connectionProblems = true;
 	}
 	
 	function sendEventList()
 	{
-		var data = {id:playerId, events:events, test:getCurObject(), cur_time:curTime};
+		var data = {id:playerId, events:events, cur_time:curTime};
 		if (events.length > 0)
 			console.log("Events out: " + JSON.stringify(events));
 		client.sendRequest("event", data, "GET", onEventResponce, null, onEventResponceError);
 		events = [];
 		serverResponcWaitFlag = true;
-	}
-	
-	var prevEventTime = 0;
-	
-	function genEvent(type,params)
-	{
-		var event = {cur_time:curTime, type:type, params:params, player:playerId, event_d: curTime - prevEventTime};
-		prevEventTime = curTime;
-		return event;
+		sendTime = curTime;
 	}
 	
 	function sendEvent(event)
@@ -627,8 +609,9 @@ var responceFlag = false;
 		events[events.length] = event;
 	}
 	
-	function shareEvent(event)
+	function shareEvent(type,params)
 	{
+		var event = genEvent(getCurObject(),type,curTime,params);
 		procEvent(playerId,event);
 		sendEvent(event);
 	}
@@ -640,13 +623,13 @@ var responceFlag = false;
 		if (e.keyCode == lastKey)
 			return;
 		if (e.keyCode == 65)
-			shareEvent(genEvent("rotate_right_start"));
+			shareEvent("rotate_right_start");
 		if (e.keyCode == 68)
-			shareEvent(genEvent("rotate_left_start"));
+			shareEvent("rotate_left_start");
 		if (e.keyCode == 87)
-			shareEvent(genEvent("move_fwd_start"));
+			shareEvent("move_fwd_start");
 		if (e.keyCode == 83)
-			shareEvent(genEvent("move_back_start"));
+			shareEvent("move_back_start");
 		lastKey = e.keyCode;
 	}
 
@@ -654,13 +637,22 @@ var responceFlag = false;
 	{
 		lastKey = 0;
 		if (e.keyCode == 65)
-			shareEvent(genEvent("rotate_right_stop"));
+			shareEvent("rotate_right_stop");
 		if (e.keyCode == 68)
-			shareEvent(genEvent("rotate_left_stop"));
+			shareEvent("rotate_left_stop");
 		if (e.keyCode == 87)
-			shareEvent(genEvent("move_fwd_stop"));
+			shareEvent("move_fwd_stop");
 		if (e.keyCode == 83)
-			shareEvent(genEvent("move_back_stop"));
+			shareEvent("move_back_stop");
+	}
+
+	function headMoveTimer()
+	{
+		if (getCurObject().head_angle != oldHeadAngle)
+		{
+			shareEvent("set_head_angle",{head_angle:getCurObject().head_angle});
+			oldHeadAngle = getCurObject().head_angle;
+		}
 	}
 
 	function onMouseMove(e)
@@ -680,7 +672,7 @@ var responceFlag = false;
 	{
 		var xOffset = 10 * Math.cos(getCurObject().head_angle);
 		var yOffset = 10 * Math.sin(getCurObject().head_angle);
-		shareEvent(genEvent("shoot",{head_angle:getCurObject().head_angle, sender:playerId, bullet_id:getRand(1000,10000000)}));
+		shareEvent("shoot",{head_angle:getCurObject().head_angle, sender:playerId, bullet_id:getRand(1000,10000000)});
 	}
 
 	function bodyLoaded()
