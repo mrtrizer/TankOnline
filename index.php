@@ -84,6 +84,24 @@ var imageCount = 0;
 var onLoaded = 0;
 var manager = 0;
 var loadCount = 0;
+var connectionTimer = setInterval(connectionTest,1000);
+var responceFlag = false;
+
+	function connectionTest()
+	{
+		if (responceFlag == true)
+		{
+			document.getElementById("connection_status").className = "connected";
+			document.getElementById("connection_status").innerHTML = "CONNECTED";
+		}
+		else
+		{
+			document.getElementById("connection_status").className = "disconnected";
+			document.getElementById("connection_status").innerHTML = "DISCONNECTED";
+			sendEventList();
+		}
+		responceFlag = false;
+	}
 	
 
 	function loadTexture(imageLoader,imgName)
@@ -174,7 +192,7 @@ var loadCount = 0;
 	function initApp() 
     {
 		host = Network.detectHost();
-		client = new Client(host + "coldcats/",playerId,0,0,false);
+		client = new Client(host + "tankonline/",playerId,0,0,false);
 		scene = new THREE.Scene();
 		var manager = new THREE.LoadingManager();
 		manager.onProgress = function ( item, loaded, total ) 
@@ -507,6 +525,7 @@ var loadCount = 0;
 	
 	function onEventResponce(data)
 	{
+		responceFlag = true;
 		setTimeout(sendEventList,50);
 		if (data.events.length > 0)
 		{
@@ -586,7 +605,7 @@ var loadCount = 0;
 	
 	function sendEventList()
 	{
-		var data = {id:playerId, events:events, test:getCurObject()};
+		var data = {id:playerId, events:events, test:getCurObject(), cur_time:curTime};
 		if (events.length > 0)
 			console.log("Events out: " + JSON.stringify(events));
 		client.sendRequest("event", data, "GET", onEventResponce, null, onEventResponceError);
@@ -673,8 +692,6 @@ var loadCount = 0;
 		camera.position.y = -Math.cos(angle) * 300;
 	}
 
-	
-
 	function onClick(e)
 	{
 		var xOffset = 10 * Math.cos(getCurObject().head_angle);
@@ -700,6 +717,9 @@ var loadCount = 0;
 <body onload="bodyLoaded()" onmousemove="onMouseMove(event)" onclick="onClick(event)">
 	<div id="finish_window" class="window">
 		Игра окончена.
+	</div>
+	<div id="connection_status" class="disconnected">
+		DISCONNECTED
 	</div>
 </body>
 </html>

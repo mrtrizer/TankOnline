@@ -157,11 +157,11 @@ function onEvent(request,response)
 	var query = url.parse(request.url,true).query;
 	var userId = query.id;
 	var inEvents = JSON.parse(query.events);
+	var object = calc.getObject(userId);
 	for (var i in inEvents)
 	{
 		var event = inEvents[i];
 		event.time = users[userId].timeOffset + event.cur_time; //time = client + offset
-		var object = calc.getObject(userId);
 		for (var j = 0; j < (event.event_d); j++)
 			calc.recalcObject(object,curTime);
 		if (object.type == "tank")

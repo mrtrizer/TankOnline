@@ -226,3 +226,22 @@ body {
 	top:10px;
 	left:10px;
 }
+
+#connection_status {
+	position:absolute;
+	top: 20px;
+	left: 20px;
+	display: block;
+	width: 100px;
+	height: 50px;
+}
+
+.disconnected{
+	color:#ff0000;
+	font-size:13px;
+}
+
+.connected{
+	color:#00ff00;
+	font-size:13px;
+}
