@@ -9,8 +9,8 @@
 <script src="js/Mirror.js" type="text/javascript"></script>
 <script src="js/loaders/ObjLoader.js" type="text/javascript"></script>
 <script src="client.js" type="text/javascript"></script>
-<script src="tools.js" type="text/javascript"></script>
-<script src="calc.js" type="text/javascript"></script>
+<script src="../engine/tools.js" type="text/javascript"></script>
+<script src="../engine/calc.js" type="text/javascript"></script>
 
 <script>
     var scene, camera, renderer;
@@ -100,6 +100,8 @@ var connectionProblems = false;
 			document.getElementById("connection_status").className = "disconnected";
 			document.getElementById("connection_status").innerHTML = "DISCONNECTED";
 			connectionProblems = true;
+			sendEvents = [];
+			events = [];
 			sendEventList();
 		}
 		responceFlag = false;
@@ -194,7 +196,7 @@ var connectionProblems = false;
 	function initApp() 
     {
 		host = Network.detectHost();
-		client = new Client(host + "tankonline/",playerId,0,0,false);
+		client = new Client(host,playerId,0,0,false);
 		scene = new THREE.Scene();
 		var manager = new THREE.LoadingManager();
 		manager.onProgress = function ( item, loaded, total ) 
@@ -508,6 +510,7 @@ var connectionProblems = false;
     }
 	
 	var events = [];
+	var sendEvents = [];
 	var corrections = [];
 	var oldHeadAngle = 0;
 	var sendTime = 0;
@@ -517,23 +520,25 @@ var connectionProblems = false;
 	{
 		sendDelay = curTime - sendTime;
 		responceFlag = true;
+		sendEvents = [];
 		setTimeout(sendEventList,50);
-		if (data.events.length > 0)
-		{
-			console.log("Objects: " + JSON.stringify(objects));
-			for (var i in data.events)
+		if (!connectionProblems)
+			if (data.events.length > 0)
 			{
-				var objectId = data.events[i].object;
-				var event = data.events[i];
-				if (getObject(event.object).owner == playerId)
-					continue;
-				var timeD = data.events[i].event_d;
-				for (var j = 0; j < timeD; j++)
-					recalcObject(getObject(objectId),curTime);
-				procEvent(objectId, event);
-				console.log("Event in [ id:" + event.object + " type:" + event.type + " time: " + event.cur_time + " ]");	
+				console.log("Objects: " + JSON.stringify(objects));
+				for (var i in data.events)
+				{
+					var objectId = data.events[i].object;
+					var event = data.events[i];
+					if (getObject(event.object).owner == playerId)
+						continue;
+					var timeD = data.events[i].event_d;
+					for (var j = 0; j < timeD; j++)
+						recalcObject(getObject(objectId),curTime);
+					procEvent(objectId, event);
+					console.log("Event in [ id:" + event.object + " type:" + event.type + " time: " + event.cur_time + " ]");	
+				}
 			}
-		}
 
 		for (var j in data.objects)
 		{
@@ -589,17 +594,18 @@ var connectionProblems = false;
 	
 	function onEventResponceError()
 	{
+		sendEvents = [];
 		setTimeout(sendEventList,500);
 		connectionProblems = true;
 	}
 	
 	function sendEventList()
 	{
-		var data = {id:playerId, events:events, cur_time:curTime};
-		if (events.length > 0)
-			console.log("Events out: " + JSON.stringify(events));
-		client.sendRequest("event", data, "GET", onEventResponce, null, onEventResponceError);
+		for (var i in events)
+			sendEvents[sendEvents.length] = events[i];
 		events = [];
+		var data = {id:playerId, events:sendEvents, cur_time:curTime};
+		client.sendRequest("event", data, "GET", onEventResponce, null, onEventResponceError);
 		serverResponcWaitFlag = true;
 		sendTime = curTime;
 	}

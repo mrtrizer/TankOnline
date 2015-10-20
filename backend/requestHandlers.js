@@ -5,7 +5,7 @@ var qs = require('querystring');
 var fs = require('fs');
 var path = require('path');
 var util = require('util');
-var calc = require('../calc');
+var calc = require('../engine/calc');
 var resPath = './res/project.res';
 var dbConnection = null;
 
