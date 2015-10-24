@@ -131,7 +131,13 @@ setInterval(onTimer, 41);
 
 function enterGame(request,response)
 {
-	var query = url.parse(request.url,true).query;
+        try {
+        var query = url.parse(request.url,true).query;
+	
+        }catch (e)
+        {
+            var query = request;
+        }
 	var time = query.time;
 	lastUserId += 1;
 	var id = lastUserId;

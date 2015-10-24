@@ -1,5 +1,5 @@
 var configLoader = require("./configLoader");
-var server = require("./server");
+var server = require("./serverSocket");
 var router = require("./router");
 var requestHandlers = require("./requestHandlers");
 
