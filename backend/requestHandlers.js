@@ -68,7 +68,7 @@ function writeResponse(response,data,error,errorMsg,err)
 	catch(e) 
 	{
 		console.log('Write responce error: ' + e);
-                response = JSON.stringify(data);
+                response.data = JSON.parse(JSON.stringify(data))
 	}
 }
 
@@ -161,8 +161,7 @@ function enterGame(request,response)
 		owner: id});
 	users[id] = {id:id, timeOffset: curTime - time, lastRequestEventId: 0};
 	writeResponse(response,{id:id,objects:objects});
-        console.log("Fuck: "+response)
-	console.log("Player enter game id:" + id);
+        console.log("FUCH!: "+JSON.stringify(response));
 }
 
 function syncClock(request,responce)

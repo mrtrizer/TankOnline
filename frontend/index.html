@@ -539,7 +539,7 @@ var connectionProblems = false;
 					console.log("Event in [ id:" + event.object + " type:" + event.type + " time: " + event.cur_time + " ]");	
 				}
 			}
-
+                if(!data.objects) return;
 		for (var j in data.objects)
 		{
 			var exists = false;

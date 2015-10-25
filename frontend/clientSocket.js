@@ -15,6 +15,7 @@ Client = function (host,userId,authKey,apiId,debug)
         client.onerror = function (error) {
             // an error occurred when sending/receiving data
         };
+
     
     
 	this.debug = debug || true;
@@ -35,24 +36,23 @@ Client = function (host,userId,authKey,apiId,debug)
                 args.func_name = funcName;
 		var params = JSON.stringify(args);
                 client.send(params);
-		xmlhttp.onreadystatechange = function()
-		{
-			if (xmlhttp.readyState == 4 && xmlhttp.status == 200)
-			{
-				if (debug)
-					console.log("Response: " + xmlhttp.responseText);
-				var data = eval("("+xmlhttp.responseText+")");
-				if (data.error_code != 0)
-				{
-					if (typeof(procError) === 'function')
-						procError(data.error_code);
-				}
-				else
-				{
-					if (typeof(parseFunction) === 'function')
-						parseFunction(data);
-				}
-			}
-		}
+                if (typeof(parseFunction) === 'function')
+                    parseFunction(args);
+                    
+                client.onmessage = function(msg)
+                {
+
+                    try {
+                        var data = JSON.parse(msg.data);
+                    } catch (e) {
+                        console.log('This doesn\'t look like a valid JSON: ', msg);
+                        return;
+                    }
+
+                    console.log("Error code: "+data.error_code)
+
+                    parseFunction(data)
+                }
+
 	}
 }
