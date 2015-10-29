@@ -67,7 +67,7 @@ function writeResponse(response,data,error,errorMsg,err)
 	} 
 	catch(e) 
 	{
-		console.log('Write responce error: ' + e);
+		//console.log('Write responce error: ' + e);
                 response.data = JSON.parse(JSON.stringify(data))
 	}
 }
@@ -170,7 +170,7 @@ function syncClock(request,responce)
 	var delay = query.delay;
 	var id = query.id;
 	users[id].delay = delay;
-	console.log("Sync clock id:" + id + " delay:" + delay);
+	//console.log("Sync clock id:" + id + " delay:" + delay);
 	writeResponse(response,data);
 }
 
@@ -188,7 +188,9 @@ function onEvent(request,response)
 		writeResponse(response,{},40,'User ' + userId + '  has not entered the game: '); 
 		return;
 	}
-	var inEvents = JSON.parse(query.events);
+        //console.log("Events: " + JSON.stringify(query.events));
+	var inEvents = query.events;//JSON.parse(query.events);
+        //console.log(JSON.stringify(inEvents));
 	var object = calc.getObject(userId);
 	for (var i in inEvents)
 	{

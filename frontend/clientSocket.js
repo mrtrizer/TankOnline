@@ -1,18 +1,19 @@
 
 
-Client = function (host,userId,authKey,apiId,debug)
+Client = function (host,userId,authKey,apiId,debug,onReady)
 {
     
         //TODO: need conf
         port = 6969;
         var adress = "ws://localhost"+":"+port+"/";
-        var client = new WebSocket(adress);
-        console.log(client.readyState);
-        client.onopen = function () {
-            
+        this.client = new WebSocket(adress);
+        
+        this.client.onopen = function () {
+            onReady();
         };
 
-        client.onerror = function (error) {
+        this.client.onerror = function (error) {
+            console.log("Error on sending/receiving data");
             // an error occurred when sending/receiving data
         };
 
@@ -23,23 +24,22 @@ Client = function (host,userId,authKey,apiId,debug)
 	this.userId = userId;
 	this.authKey = authKey;
 	this.apiId = apiId;
+
 	this.sendRequest = function (funcName,args,method,parseFunction,procError,httpError)
 	{
-		var xmlhttp;
-		if (window.XMLHttpRequest)
-			xmlhttp = new XMLHttpRequest();//IE7+, Firefox, Chrome, Opera, Safari
-		else
-			xmlhttp = new ActiveXObject("Microsoft.XMLHTTP"); //IE6, IE5
 		args.api_id = this.apiId;
 		args.auth_key = this.authKey;
 		args.api_id = this.apiId;
                 args.func_name = funcName;
 		var params = JSON.stringify(args);
-                client.send(params);
-                if (typeof(parseFunction) === 'function')
-                    parseFunction(args);
-                    
-                client.onmessage = function(msg)
+                if (this.client.readyState != 1)
+                {
+                    console.log("Not ready");
+                    httpError();
+                }
+                this.client.send(params);
+
+                this.client.onmessage = function(msg)
                 {
 
                     try {
@@ -51,7 +51,8 @@ Client = function (host,userId,authKey,apiId,debug)
 
                     console.log("Error code: "+data.error_code)
 
-                    parseFunction(data)
+                    if (typeof(parseFunction) === 'function')
+                        parseFunction(data);
                 }
 
 	}

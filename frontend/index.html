@@ -84,7 +84,7 @@ var imageCount = 0;
 var onLoaded = 0;
 var manager = 0;
 var loadCount = 0;
-var connectionTimer = setInterval(connectionTest,1000);
+var connectionTimer = 0;
 var responceFlag = false;
 var connectionProblems = false;
 
@@ -185,7 +185,7 @@ var connectionProblems = false;
 		client.sendRequest("enter_game", {time:curTime,id:playerId}, "GET", function (responce){
 			playerId = responce.id;
 			onEntered();
-		});
+		},null,function(){});
 	}
 	
 	function objectsLoaded()
@@ -196,14 +196,16 @@ var connectionProblems = false;
 	function initApp() 
     {
 		host = Network.detectHost();
-		client = new Client(host,playerId,0,0,false);
-		scene = new THREE.Scene();
-		var manager = new THREE.LoadingManager();
-		manager.onProgress = function ( item, loaded, total ) 
-		{
+		client = new Client(host,playerId,0,0,false,function()
+                {
+                    scene = new THREE.Scene();
+                    var manager = new THREE.LoadingManager();
+                    manager.onProgress = function ( item, loaded, total ) 
+                    {
 
-		};
-		loadTextures(['tank1.png','tree.png','turel.png'], manager, loadObjects);
+                    };
+                    loadTextures(['tank1.png','tree.png','turel.png'], manager, loadObjects);
+                });
     }
     
     // function for drawing rounded rectangles
@@ -313,6 +315,7 @@ var connectionProblems = false;
         
         sendEventList();//Start event generation
         
+        connectionTimer = setInterval(connectionTest,1000);
         setInterval(headMoveTimer,1000);
 	}
 
@@ -518,10 +521,11 @@ var connectionProblems = false;
 	
 	function onEventResponce(data)
 	{
-		sendDelay = curTime - sendTime;
+                var date = new Date();
+		sendDelay = date.getMilliseconds() - sendTime;
 		responceFlag = true;
 		sendEvents = [];
-		setTimeout(sendEventList,50);
+		setTimeout(sendEventList,10);
 		if (!connectionProblems)
 			if (data.events.length > 0)
 			{
@@ -607,7 +611,8 @@ var connectionProblems = false;
 		var data = {id:playerId, events:sendEvents, cur_time:curTime};
 		client.sendRequest("event", data, "GET", onEventResponce, null, onEventResponceError);
 		serverResponcWaitFlag = true;
-		sendTime = curTime;
+                var date = new Date();
+		sendTime = date.getMilliseconds();
 	}
 	
 	function sendEvent(event)

@@ -26,13 +26,13 @@ function startSocketServer(route, handle, config)
         console.log("Client is connected");
         connection.on('message', function(msg) {
             var recponce = {}
-            console.log("Data is: "+msg.utf8Data)
+            //console.log("Data is: "+msg.utf8Data)
             if(msg)
             {
                 var data = JSON.parse(msg.utf8Data);
                 route(handle,data.func_name,data,recponce);
                 var jdata = JSON.stringify(recponce.data);
-                console.log("Server send data: "+jdata);
+                //console.log("Server send data: "+jdata);
                 connection.send(jdata);
             }
         });
