@@ -31,13 +31,14 @@ Client = function (host,userId,authKey,apiId,debug)
 		if (debug)
 			console.log("Request: " + address);
 		xmlhttp.open(method, address, true);
+                var data = {}
 		xmlhttp.onreadystatechange = function()
 		{
 			if (xmlhttp.readyState == 4 && xmlhttp.status == 200)
 			{
 				if (debug)
 					console.log("Response: " + xmlhttp.responseText);
-				var data = eval("("+xmlhttp.responseText+")");
+				data = eval("("+xmlhttp.responseText+")");
 				if (data.error_code != 0)
 				{
 					if (typeof(procError) === 'function')

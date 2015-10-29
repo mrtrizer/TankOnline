@@ -67,7 +67,8 @@ function writeResponse(response,data,error,errorMsg,err)
 	} 
 	catch(e) 
 	{
-		console.log('Write responce error: ' + e);
+		//console.log('Write responce error: ' + e);
+                response.data = JSON.parse(JSON.stringify(data))
 	}
 }
 
@@ -129,9 +130,20 @@ function onTimer()
 
 setInterval(onTimer, 41);
 
+function parseUrl(url)
+{
+    try {
+        return url.parse(request.url,true).query;
+	
+        }catch (e)
+        {
+            return url;
+        }
+}
+
 function enterGame(request,response)
 {
-	var query = url.parse(request.url,true).query;
+        var query = parseUrl(request)
 	var time = query.time;
 	lastUserId += 1;
 	var id = lastUserId;
@@ -149,23 +161,23 @@ function enterGame(request,response)
 		owner: id});
 	users[id] = {id:id, timeOffset: curTime - time, lastRequestEventId: 0};
 	writeResponse(response,{id:id,objects:objects});
-	console.log("Player enter game id:" + id);
+        console.log("FUCH!: "+JSON.stringify(response));
 }
 
 function syncClock(request,responce)
 {
-	var query = url.parse(request.url,true).query;
+        var query = parseUrl(request)
 	var delay = query.delay;
 	var id = query.id;
 	users[id].delay = delay;
-	console.log("Sync clock id:" + id + " delay:" + delay);
+	//console.log("Sync clock id:" + id + " delay:" + delay);
 	writeResponse(response,data);
 }
 
 function onEvent(request,response)
 {
 	var data = {};
-	var query = url.parse(request.url,true).query;
+        var query = parseUrl(request)
 	var userId = query.id;
 	var entered = false;
 	for (var i in users)
@@ -176,7 +188,9 @@ function onEvent(request,response)
 		writeResponse(response,{},40,'User ' + userId + '  has not entered the game: '); 
 		return;
 	}
-	var inEvents = JSON.parse(query.events);
+        //console.log("Events: " + JSON.stringify(query.events));
+	var inEvents = query.events;//JSON.parse(query.events);
+        //console.log(JSON.stringify(inEvents));
 	var object = calc.getObject(userId);
 	for (var i in inEvents)
 	{

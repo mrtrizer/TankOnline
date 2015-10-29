@@ -15,15 +15,19 @@ var mimeTypes = {
 function route(handle, pathname, request, response) 
 {
 	//console.log("About to route a request for " + pathname);
-	pathname = pathname.replace(/\/+/,"");
+        console.log("FuncName: "+pathname);
+        if(pathname.indexOf("/"))
+            pathname = pathname.replace(/\/+/,"");
 	if (typeof handle[pathname] === 'function') 
 	{
-		//console.log("Processing");
-		handle[pathname](request,response);
+            console.log("Type is function"); 
+            handle[pathname](request,response);
 	}
 	else 
 	{
+                console.log("Type is not function");
 		var fileName = path.join(process.cwd(), pathname);
+
 		fs.exists(fileName, function(exists) {
 			if(!exists) {
 				console.log("No request handler found: " + pathname);
