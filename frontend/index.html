@@ -397,8 +397,16 @@ var connectionProblems = false;
 		{
 			var mesh = objectsMesh[i];
 			var object = objectsMesh[i].object;
-			mesh.position.x = object.x;
-			mesh.position.y = object.y;
+			if (object.type == "wall")
+			{
+				mesh.position.x = object.x + object.width / 2;
+				mesh.position.y = object.y + object.height / 2;
+			}
+			else
+			{
+				mesh.position.x = object.x;
+				mesh.position.y = object.y;
+			}
 			if (object.type == "tank")
 			{
 				//if (mesh.oldHealth != mesh.object.health)
@@ -442,6 +450,13 @@ var connectionProblems = false;
 	function constructObject(object)
 	{
 		var mesh = null;
+		if (object.type == "wall")
+		{
+			var geometry = new THREE.BoxGeometry(object.width, object.height, 100);
+			var material = new THREE.MeshBasicMaterial({ color: 0x666666 });
+			mesh = new THREE.Mesh(geometry, material);
+			scene.add(mesh);
+		}
 		if (object.type == "bullet")
 		{
 			mesh = addBullet(object.x, object.y, 5, 0xff0000, 20);

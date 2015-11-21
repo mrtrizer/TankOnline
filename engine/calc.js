@@ -27,6 +27,23 @@ function getDist(object1,object2)
 	return Math.sqrt(Math.pow(object1.x - object2.x, 2) + Math.pow(object1.y - object2.y, 2));
 }
 
+function isIntersection (object,x,y)
+{
+	var objectAbsolute = {
+		x1:object.x,
+		y1:object.y,
+		x2:object.x + object.width,
+		y2:object.y + object.height
+	}
+	if ((objectAbsolute.x1 < x) &&
+		(objectAbsolute.x2 > x) &&
+		(objectAbsolute.y1 < y) &&
+		(objectAbsolute.y2 > y))
+		return true;
+	else
+		return false;
+}
+
 function setObjects(newObjects)
 {
 	objects = newObjects;
@@ -115,16 +132,23 @@ function recalcObject(object, curTime)
 		var collusion = false;
 		for (var i in objects)
 		{
-			if (objects[i].type != "tank")
-				continue;
-			if (objects[i].id == object.id)
-				continue;
-			var dist = getDist(objects[i], {x:newX, y:newY});
-			if (dist < 70)
+			if (objects[i].type == "tank")
 			{
-				collusion = true;
-				break;
+				if (objects[i].id == object.id)
+					continue;
+				var dist = getDist(objects[i], {x:newX, y:newY});
+				if (dist < 70)
+				{
+					collusion = true;
+					break;
+				}
 			}
+			if (objects[i].type == "wall")
+				if (isIntersection(objects[i], newX, newY))
+				{
+					collusion = true;
+					break;
+				}
 		}
 		if ((newX > 450) || (newY > 450) || (newX< -450) || (newY < -450))
 			collusion = true;

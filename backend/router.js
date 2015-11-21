@@ -45,7 +45,7 @@ function route(handle, pathname, request, response)
 			}
 			var pathItems = path.extname(fileName).split(".");
 			var mimeType = mimeTypes[pathItems[pathItems.length - 1]];
-			response.writeHead(200, {'Content-Type': mimeType});
+			response.writeHead(200, {'Content-Type': mimeType, "Cache-Control": "no-cache"});
 			var fileStream = fs.createReadStream(fileName);
 			fileStream.pipe(response);
 		}); //path.exists

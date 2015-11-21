@@ -61,7 +61,7 @@ function writeResponse(response,data,error,errorMsg,err)
 		console.log(err);
 	try 
 	{
-		response.writeHead(200, {'Content-Type': 'text/plain'});
+		response.writeHead(200, {'Content-Type': 'text/plain', "Cache-Control": "no-cache"});
 		response.write(JSON.stringify(data));
 		response.end();
 	} 
@@ -116,7 +116,12 @@ function checkVars(vars, list)
 
 var users = {};
 var curTime = 0;
-var objects = [];
+var objects = [
+{ id:500, type:"wall", x: -100, y: -500, width: 200, height: 200, speed_x: 0,  speed_y: 0, owner: 1000},
+{ id:501, type:"wall", x: -100, y: 300, width: 200, height: 200, speed_x: 0,  speed_y: 0, owner: 1000},
+{ id:502, type:"wall", x: -500, y: -100, width: 200, height: 200, speed_x: 0,  speed_y: 0, owner: 1000},
+{ id:503, type:"wall", x: 300, y: -100, width: 200, height: 200, speed_x: 0,  speed_y: 0, owner: 1000},
+];
 calc.setObjects(objects);
 var events = [];
 var lastEventId = 0;
