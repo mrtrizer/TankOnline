@@ -276,7 +276,7 @@ var connectionProblems = false;
 
 	function initMap()
 	{
-		camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 2000 );
+		camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 2500 );
 		camera.position.z = 300;
 		camera.position.y = -200;
 		camera.rotation.x = Math.PI / 4;
@@ -308,8 +308,45 @@ var connectionProblems = false;
 		renderer.shadowMapDarkness = 1;
 		renderer.shadowMapWidth = 1024;
 		renderer.shadowMapHeight = 1024;
+		
 
         document.body.appendChild( renderer.domElement );
+		
+		var resPath = "./res/"
+		
+		var urls = [
+  resPath+'0004.png',
+  resPath+'0002.png',
+  resPath+'0006.png',
+  resPath+'0005.png',
+  resPath+'0001.png',
+  resPath+'0003.png'
+	];
+	
+	var cubemap = THREE.ImageUtils.loadTextureCube(urls); // load textures
+	cubemap.format = THREE.RGBFormat;
+	
+	var shader = THREE.ShaderLib['cube']; // init cube shader from built-in lib
+	shader.uniforms['tCube'].value = cubemap; // apply textures to shader
+	
+	// create shader material
+	var skyBoxMaterial = new THREE.ShaderMaterial( {
+	fragmentShader: shader.fragmentShader,
+	vertexShader: shader.vertexShader,
+	uniforms: shader.uniforms,
+	depthWrite: false,
+	side: THREE.BackSide
+	});
+	
+	// create skybox mesh
+	var skybox = new THREE.Mesh(
+	new THREE.CubeGeometry(2000, 2000, 2000),
+	skyBoxMaterial
+	);
+	
+	scene.add(skybox);
+		
+		
         window.addEventListener( 'resize', onWindowResize, false );
         startGame();
         
